@@ -3,6 +3,10 @@ package main
 import (
 	"errors"
 	"fmt"
+	"os"
+	"os/exec"
+	"runtime"
+	"strconv"
 )
 
 var seduleLength int = 3
@@ -36,59 +40,12 @@ var medium = [9][9]int{
 }
 
 func main() {
-
-	// ok, err := validatePosition(9, 5, 1)
-	// position := [2]int{0, 0}
-	sudokuSolved, err := solveSudoku(easy)
+	_, err := solveSudoku(medium)
 
 	if err != nil {
 		fmt.Println(err)
 	}
-
-	printBoard(sudokuSolved)
-
-	// printBoard(sudoku)
-
-	// fmt.Println(getNextEmptyPosition(sudoku))
-
 }
-
-// func solveSudoku(board [9][9]int, position [2]int) [9][9]int {
-// 	number := 1
-// 	column := position[0]
-// 	line := position[1]
-
-// 	if column == 9 {
-// 		line++
-// 		column = 0
-// 	}
-
-// 	if board[line][column] != 0 {
-// 		position[0] = column
-// 		position[1] = line
-// 		return solveSudoku(board, position)
-// 	}
-
-// 	for number <= 9 {
-// 		isValid := validatePosition(board, number, column, line)
-
-// 		if !isValid {
-// 			number++
-// 			continue
-// 		}
-
-// 		board[line][column] = number
-
-// 	}
-
-// 	if board[line][column] == 0 {
-// 		return board
-// 	}
-
-// 	// if column
-
-// 	return board
-// }
 
 func solveSudoku(board [9][9]int) ([9][9]int, error) {
 
@@ -101,15 +58,13 @@ func solveSudoku(board [9][9]int) ([9][9]int, error) {
 	number := 1
 	for number <= 9 {
 		isValid := validatePosition(board, number, line, column)
-		if line == 0 && column == 0 {
-			fmt.Println(line, column, number)
-		}
 		if !isValid {
 			number++
 			continue
 		}
 
 		board[line][column] = number
+		CallClear()
 		printBoard(board)
 		board, err = solveSudoku(board)
 
@@ -139,25 +94,27 @@ func getNextEmptyPosition(board [9][9]int) (int, int, error) {
 }
 
 func printBoard(board [9][9]int) {
-	fmt.Println("+-------+-------+-------+")
+	var boardStr string
+	boardStr = "+-------+-------+-------+\n"
 	countLine := 0
 	for line, columns := range board {
-		fmt.Print("| ")
+		boardStr += "| "
 		countColumn := 0
 		for column := range columns {
-			fmt.Printf("%d ", board[line][column])
+			strValue := strconv.Itoa(board[line][column])
+			boardStr += strValue + " "
 			countColumn++
 			if countColumn%3 == 0 {
-				fmt.Print("| ")
+				boardStr += "| "
 			}
 		}
-		fmt.Println("")
+		boardStr += "\n"
 		countLine++
 		if countLine%3 == 0 {
-			fmt.Println("+-------+-------+-------+")
-
+			boardStr += "+-------+-------+-------+\n"
 		}
 	}
+	fmt.Print(boardStr)
 }
 
 func validatePosition(board [9][9]int, number, line, column int) bool {
@@ -193,4 +150,29 @@ func validatePosition(board [9][9]int, number, line, column int) bool {
 	}
 
 	return true
+}
+
+var clear map[string]func()
+
+func init() {
+	clear = make(map[string]func())
+	clear["linux"] = func() {
+		cmd := exec.Command("clear")
+		cmd.Stdout = os.Stdout
+		cmd.Run()
+	}
+	clear["windows"] = func() {
+		cmd := exec.Command("cmd", "/c", "cls")
+		cmd.Stdout = os.Stdout
+		cmd.Run()
+	}
+}
+
+func CallClear() {
+	value, ok := clear[runtime.GOOS]
+	if ok {
+		value()
+	} else {
+		panic("Your platform is unsupported! I can't clear terminal screen :(")
+	}
 }
