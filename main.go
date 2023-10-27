@@ -39,8 +39,20 @@ var medium = [9][9]int{
 	{0, 0, 0, 0, 4, 0, 0, 0, 9},
 }
 
+var m = [9][9]int{
+	{0, 0, 0, 0, 0, 0, 0, 0, 0},
+	{0, 0, 3, 0, 0, 0, 0, 8, 0},
+	{0, 0, 0, 1, 0, 2, 0, 0, 0},
+	{0, 0, 0, 0, 5, 0, 7, 0, 0},
+	{0, 0, 4, 0, 0, 0, 0, 1, 0},
+	{0, 9, 0, 0, 0, 0, 0, 0, 0},
+	{5, 0, 0, 0, 0, 0, 0, 7, 3},
+	{0, 0, 2, 0, 1, 0, 0, 0, 0},
+	{0, 0, 0, 0, 4, 0, 0, 0, 9},
+}
+
 func main() {
-	_, err := solveSudoku(medium)
+	_, err := solveSudoku(m)
 
 	if err != nil {
 		fmt.Println(err)
@@ -66,7 +78,9 @@ func solveSudoku(board [9][9]int) ([9][9]int, error) {
 
 		if err != nil {
 			board[line][column] = 0
+			continue
 		}
+		break
 	}
 
 	if board[line][column] == 0 {
