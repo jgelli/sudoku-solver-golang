@@ -55,13 +55,9 @@ func solveSudoku(board [9][9]int) ([9][9]int, error) {
 		return board, nil
 	}
 
-	number := 1
-	for number <= 9 {
-		isValid := validatePosition(board, number, line, column)
-		if !isValid {
-			number++
-			continue
-		}
+	validNumbers := getValidNumberByPosition(board, line, column)
+	//TODO: Randomize validNumbers
+	for _, number := range validNumbers {
 
 		board[line][column] = number
 		CallClear()
@@ -70,7 +66,6 @@ func solveSudoku(board [9][9]int) ([9][9]int, error) {
 
 		if err != nil {
 			board[line][column] = 0
-			number++
 		}
 	}
 
@@ -79,6 +74,49 @@ func solveSudoku(board [9][9]int) ([9][9]int, error) {
 	}
 
 	return solveSudoku(board)
+}
+
+func getValidNumberByPosition(board [9][9]int, line int, column int) []int {
+	validNumbers := []int{1, 2, 3, 4, 5, 6, 7, 8, 9}
+
+	//Validate sedule
+	seduleColumn := column - (column % seduleLength)
+	seduleLine := line - (line % seduleLength)
+
+	for y := seduleLine; y < seduleLine+seduleLength; y++ {
+		for x := seduleColumn; x < seduleColumn+seduleLength; x++ {
+			for index, number := range validNumbers {
+				if number == board[y][x] {
+					validNumbers = deleteSliceElement(validNumbers, index)
+				}
+			}
+		}
+	}
+
+	//Validate line
+	for x := 0; x < len(board[0]); x++ {
+		for index, number := range validNumbers {
+			if number == board[line][x] {
+				validNumbers = deleteSliceElement(validNumbers, index)
+
+			}
+		}
+	}
+
+	//Validate column
+	for y := 0; y < len(board); y++ {
+		for index, number := range validNumbers {
+			if number == board[y][column] {
+				validNumbers = deleteSliceElement(validNumbers, index)
+			}
+		}
+	}
+
+	return validNumbers
+}
+
+func deleteSliceElement(slice []int, index int) []int {
+	return append(slice[:index], slice[index+1:]...)
 }
 
 func getNextEmptyPosition(board [9][9]int) (int, int, error) {
@@ -115,41 +153,6 @@ func printBoard(board [9][9]int) {
 		}
 	}
 	fmt.Print(boardStr)
-}
-
-func validatePosition(board [9][9]int, number, line, column int) bool {
-	errors := [3]map[string]int{}
-
-	//Validate sedule
-	seduleColumn := column - (column % seduleLength)
-	seduleLine := line - (line % seduleLength)
-
-	for y := seduleLine; y < seduleLine+seduleLength; y++ {
-		for x := seduleColumn; x < seduleColumn+seduleLength; x++ {
-			if number == board[y][x] {
-				errors[0] = map[string]int{"column": x, "line": y}
-				return false
-			}
-		}
-	}
-
-	//Validate line
-	for x := 0; x < len(board[0]); x++ {
-		if number == board[line][x] {
-			errors[1] = map[string]int{"column": x, "line": line}
-			return false
-		}
-	}
-
-	//Validate column
-	for y := 0; y < len(board); y++ {
-		if number == board[y][column] {
-			errors[2] = map[string]int{"column": y, "line": line}
-			return false
-		}
-	}
-
-	return true
 }
 
 var clear map[string]func()
